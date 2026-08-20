@@ -1,0 +1,238 @@
+USE [master];
+GO
+
+IF DB_ID(N'HotelDB2') IS NULL
+BEGIN
+    CREATE DATABASE [HotelDB2];
+END
+GO
+
+USE [HotelDB2];
+GO
+
+/* Drop tables first so script can run again without errors */
+DROP TABLE IF EXISTS [dbo].[FoodOrders];
+DROP TABLE IF EXISTS [dbo].[Invoices];
+DROP TABLE IF EXISTS [dbo].[Login];
+DROP TABLE IF EXISTS [dbo].[Services];
+DROP TABLE IF EXISTS [dbo].[Bookings];
+DROP TABLE IF EXISTS [dbo].[Rooms];
+DROP TABLE IF EXISTS [dbo].[Users];
+GO
+
+/* =========================
+   USERS TABLE
+========================= */
+CREATE TABLE [dbo].[Users](
+    [userId] INT IDENTITY(1,1) NOT NULL,
+    [userName] VARCHAR(100) NULL,
+    [email] VARCHAR(100) NULL,
+    [phoneNumber] VARCHAR(20) NULL,
+    [role] VARCHAR(50) NULL,
+    [status] VARCHAR(50) NULL,
+    CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED ([userId] ASC)
+);
+GO
+
+/* =========================
+   ROOMS TABLE
+========================= */
+CREATE TABLE [dbo].[Rooms](
+    [roomId] INT IDENTITY(1,1) NOT NULL,
+    [roomType] VARCHAR(50) NULL,
+    [pricePerNight] FLOAT NULL,
+    [status] VARCHAR(50) NULL,
+    CONSTRAINT [PK_Rooms] PRIMARY KEY CLUSTERED ([roomId] ASC)
+);
+GO
+
+/* =========================
+   BOOKINGS TABLE
+========================= */
+CREATE TABLE [dbo].[Bookings](
+    [bookingId] INT IDENTITY(1,1) NOT NULL,
+    [guestId] INT NULL,
+    [roomId] INT NULL,
+    [checkIn] DATE NULL,
+    [checkOut] DATE NULL,
+    [status] VARCHAR(50) NULL,
+    CONSTRAINT [PK_Bookings] PRIMARY KEY CLUSTERED ([bookingId] ASC),
+    CONSTRAINT [FK_Bookings_Users] FOREIGN KEY ([guestId]) REFERENCES [dbo].[Users]([userId]),
+    CONSTRAINT [FK_Bookings_Rooms] FOREIGN KEY ([roomId]) REFERENCES [dbo].[Rooms]([roomId])
+);
+GO
+
+/* =========================
+   SERVICES TABLE
+========================= */
+CREATE TABLE [dbo].[Services](
+    [serviceId] INT IDENTITY(1,1) NOT NULL,
+    [serviceName] VARCHAR(100) NULL,
+    [cost] FLOAT NULL,
+    [bookingId] INT NULL,
+    [Status] VARCHAR(50) NULL CONSTRAINT [DF_Services_Status] DEFAULT ('Active'),
+    CONSTRAINT [PK_Services] PRIMARY KEY CLUSTERED ([serviceId] ASC),
+    CONSTRAINT [FK_Services_Bookings] FOREIGN KEY ([bookingId]) REFERENCES [dbo].[Bookings]([bookingId])
+);
+GO
+
+/* =========================
+   FOOD ORDERS TABLE
+========================= */
+CREATE TABLE [dbo].[FoodOrders](
+    [orderId] INT IDENTITY(1,1) NOT NULL,
+    [bookingId] INT NULL,
+    [foodName] VARCHAR(100) NULL,
+    [quantity] INT NULL,
+    [totalPrice] FLOAT NULL,
+    [status] VARCHAR(50) NULL,
+    CONSTRAINT [PK_FoodOrders] PRIMARY KEY CLUSTERED ([orderId] ASC),
+    CONSTRAINT [FK_FoodOrders_Bookings] FOREIGN KEY ([bookingId]) REFERENCES [dbo].[Bookings]([bookingId])
+);
+GO
+
+/* =========================
+   INVOICES TABLE
+========================= */
+CREATE TABLE [dbo].[Invoices](
+    [invoiceId] INT IDENTITY(1,1) NOT NULL,
+    [bookingId] INT NULL,
+    [totalAmount] FLOAT NULL,
+    [paymentDate] DATE NULL,
+    [paymentMethod] VARCHAR(50) NULL,
+    [paymentStatus] VARCHAR(50) NULL,
+    CONSTRAINT [PK_Invoices] PRIMARY KEY CLUSTERED ([invoiceId] ASC),
+    CONSTRAINT [FK_Invoices_Bookings] FOREIGN KEY ([bookingId]) REFERENCES [dbo].[Bookings]([bookingId])
+);
+GO
+
+/* =========================
+   LOGIN TABLE
+========================= */
+CREATE TABLE [dbo].[Login](
+    [loginId] INT IDENTITY(1,1) NOT NULL,
+    [userId] INT NULL,
+    [password] VARCHAR(100) NULL,
+    [role] VARCHAR(50) NULL,
+    [status] BIT NULL,
+    CONSTRAINT [PK_Login] PRIMARY KEY CLUSTERED ([loginId] ASC),
+    CONSTRAINT [FK_Login_Users] FOREIGN KEY ([userId]) REFERENCES [dbo].[Users]([userId])
+);
+GO
+
+/* =========================
+   INSERT USERS
+========================= */
+SET IDENTITY_INSERT [dbo].[Users] ON;
+
+INSERT INTO [dbo].[Users] 
+([userId], [userName], [email], [phoneNumber], [role], [status])
+VALUES
+(1, 'admin123', 'admin@gmail.com', '01700000011', 'Admin', 'Active'),
+(2, 'staffmim', 'staff@gmail.com', '01700000002', 'Staff', 'Active'),
+(3, 'guest123', 'guest@gmail.com', '01700000003', 'Guest', 'Active'),
+(4, 'Mim', 'mim@gmail.com', '01712345678', 'Guest', 'Active'),
+(5, 'Jaku162', 'jaky@gmail.com', '01712345679', 'Guest', 'Active'),
+(6, 'Mimo123', 'mimooo@gmail.com', '01711442233', 'Guest', 'Active'),
+(7, 'Mimoo2', 'mi2@gmail.com', '01612345678', 'Guest', 'Active');
+
+SET IDENTITY_INSERT [dbo].[Users] OFF;
+GO
+
+/* =========================
+   INSERT ROOMS
+========================= */
+SET IDENTITY_INSERT [dbo].[Rooms] ON;
+
+INSERT INTO [dbo].[Rooms]
+([roomId], [roomType], [pricePerNight], [status])
+VALUES
+(1, 'Single', 2000, 'Available'),
+(2, 'Double', 3500, 'Booked'),
+(3, 'Deluxe', 5000, 'Available'),
+(4, 'Suite', 8000, 'Available'),
+(5, 'Single', 2000, 'Maintenance'),
+(6, 'Deluxe', 5000, 'Available');
+
+SET IDENTITY_INSERT [dbo].[Rooms] OFF;
+GO
+
+/* =========================
+   INSERT BOOKINGS
+========================= */
+SET IDENTITY_INSERT [dbo].[Bookings] ON;
+
+INSERT INTO [dbo].[Bookings]
+([bookingId], [guestId], [roomId], [checkIn], [checkOut], [status])
+VALUES
+(1, 3, 3, '2026-05-15', '2026-05-17', 'Checked Out'),
+(2, 3, 3, '2026-05-20', '2026-05-28', 'Checked Out'),
+(3, 3, 1, '2026-05-28', '2026-05-19', 'Pending');
+
+SET IDENTITY_INSERT [dbo].[Bookings] OFF;
+GO
+
+/* =========================
+   INSERT SERVICES
+========================= */
+SET IDENTITY_INSERT [dbo].[Services] ON;
+
+INSERT INTO [dbo].[Services]
+([serviceId], [serviceName], [cost], [bookingId], [Status])
+VALUES
+(1, 'Spa', 0, 1, 'Done'),
+(2, 'Transport', 0, 1, 'Done'),
+(3, 'Breakfast', 0, 1, 'Done'),
+(4, 'Room Service', 0, 1, 'Done'),
+(5, 'Laundry', 500, 1, 'Done'),
+(6, 'Breakfast', 700, 2, 'Active');
+
+SET IDENTITY_INSERT [dbo].[Services] OFF;
+GO
+
+/* =========================
+   INSERT LOGIN DATA
+========================= */
+SET IDENTITY_INSERT [dbo].[Login] ON;
+
+INSERT INTO [dbo].[Login]
+([loginId], [userId], [password], [role], [status])
+VALUES
+(1, 1, 'admin123', 'Admin', 1),
+(2, 2, 'staff123', 'Staff', 1),
+(3, 3, 'Guest@123', 'Guest', 1),
+(4, 4, 'Mimo248a', 'Guest', 1),
+(5, 5, 'Jaku162', 'Guest', 1),
+(6, 6, 'Mim@1234', 'Guest', 1),
+(7, 7, 'Mimo248@', 'Guest', 1);
+
+SET IDENTITY_INSERT [dbo].[Login] OFF;
+GO
+
+/* =========================
+   INSERT INVOICES
+========================= */
+SET IDENTITY_INSERT [dbo].[Invoices] ON;
+
+INSERT INTO [dbo].[Invoices]
+([invoiceId], [bookingId], [totalAmount], [paymentDate], [paymentMethod], [paymentStatus])
+VALUES
+(1, 1, 5000, '2026-05-19', 'bKash', 'Paid'),
+(2, 1, 5000, '2026-05-19', 'bKash', 'Paid');
+
+SET IDENTITY_INSERT [dbo].[Invoices] OFF;
+GO
+
+/* FoodOrders table has no visible data in your screenshots */
+
+/* =========================
+   CHECK DATA
+========================= */
+SELECT * FROM [dbo].[Users];
+SELECT * FROM [dbo].[Rooms];
+SELECT * FROM [dbo].[Bookings];
+SELECT * FROM [dbo].[Services];
+SELECT * FROM [dbo].[Login];
+SELECT * FROM [dbo].[Invoices];
+SELECT * FROM [dbo].[FoodOrders];
+GO
